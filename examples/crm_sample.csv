@@ -1,0 +1,9 @@
+TRX_ID,CLIENT_NO,DT_OPEN,DURATION_MIN,WAIT_SEC,CHANNEL,SERVICE,STATUS,OPERATOR,COMMENT
+T-1001,CL-100,2026-03-02T09:12:00,7.5,45,office,card-dispute,closed,OP-9,customer satisfied
+T-1002,CL-101,2026-03-02T10:15:00,3,180,call,balance-enquiry,complaint,OP-7,asked to call back on 701 234 56 78
+T-1003,CL-102,2026-03-02T11:40:00,22,60,office,loan-application,ok,OP-9,
+T-1004,CL-100,2026-03-05T14:05:00,12,0,chat,card-dispute,complaint,OP-3,second time about the same card
+T-1005,CL-103,2026-03-06T09:00:00,4,15,mail,statement-request,closed,OP-7,
+T-1006,CL-101,2026-03-09T16:30:00,9,240,call,balance-enquiry,ok,OP-7,
+T-1007,CL-104,2026-03-10T08:45:00,1,600,call,card-dispute,dropped,,abandoned in queue
+T-1008,CL-102,2026-03-11T13:20:00,15,30,office,loan-application,closed,OP-9,approved
