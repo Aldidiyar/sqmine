@@ -21,13 +21,18 @@ __all__ = ["Pseudonymiser", "redact_text"]
 
 _DEFAULT_DIGEST_CHARS = 16
 
-# Ordered most specific first: an email contains digits that would otherwise be
-# caught by the identifier rule, and we would rather label it an email.
+# Order matters, and it is the narrowest pattern first. An email contains
+# digits the number rules would otherwise claim; a bare twelve-digit run is far
+# more likely a Kazakhstani individual identification number than a telephone
+# number, which locally carries eleven digits. The phone rule therefore runs
+# last, over whatever the specific rules have not already consumed.
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("EMAIL", re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b")),
-    ("PHONE", re.compile(r"(?<!\w)(?:\+?\d[\s\-()]?){10,14}\d(?!\w)")),
-    ("ID", re.compile(r"(?<!\d)\d{12}(?!\d)")),
     ("CARD", re.compile(r"(?<!\d)(?:\d[ -]?){15,18}\d(?!\d)")),
+    ("ID", re.compile(r"(?<!\d)\d{12}(?!\d)")),
+    # Ten digits and up: local numbers are frequently written without the
+    # country code, as "701 234 56 78".
+    ("PHONE", re.compile(r"(?<!\w)(?:\+?\d[\s\-()]?){9,14}\d(?!\w)")),
 )
 
 

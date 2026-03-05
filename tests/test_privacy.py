@@ -96,5 +96,13 @@ class TestRedactText:
     def test_phone_is_redacted(self) -> None:
         assert "[PHONE]" in redact_text("call +7 701 234 56 78 tomorrow")  # type: ignore[operator]
 
+    def test_national_id_is_redacted(self) -> None:
+        assert "[ID]" in redact_text("my number is 900101300123")  # type: ignore[operator]
+
+    def test_several_identifiers_in_one_string(self) -> None:
+        result = redact_text("a.b@example.kz and 900101300123")
+        assert result is not None
+        assert "[EMAIL]" in result and "[ID]" in result
+
     def test_short_numbers_are_preserved(self) -> None:
         assert redact_text("waited 15 minutes") == "waited 15 minutes"
