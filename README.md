@@ -1,6 +1,6 @@
 # sqmine
 
-[![CI](https://github.com/OWNER/sqmine/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/sqmine/actions/workflows/ci.yml)
+[![CI](https://github.com/Aldidiyar/sqmine/actions/workflows/ci.yml/badge.svg)](https://github.com/Aldidiyar/sqmine/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -38,7 +38,7 @@ problem:
 ## Install
 
 ```bash
-git clone https://github.com/OWNER/sqmine.git
+git clone https://github.com/Aldidiyar/sqmine.git
 cd sqmine
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
