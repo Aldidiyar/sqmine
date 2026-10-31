@@ -24,11 +24,17 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+# Development tools are bounded, not floated. ruff's formatter rewrites source,
+# so an unpinned version makes the build non-deterministic: the same commit can
+# pass today and fail tomorrow because a new release changed its output, which
+# is exactly what happened once here. ruff is therefore pinned exactly, and the
+# others are capped at the next major version, so an upgrade is a deliberate
+# commit rather than a surprise on an unrelated pull request.
 dev = [
-    "pytest>=8.0",
-    "pytest-cov>=5.0",
-    "ruff>=0.6",
-    "mypy>=1.11",
+    "pytest>=8.0,<10",
+    "pytest-cov>=5.0,<8",
+    "ruff==0.17.3",
+    "mypy>=1.11,<3",
 ]
 
 [project.scripts]

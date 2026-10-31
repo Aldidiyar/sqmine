@@ -95,7 +95,7 @@ from sqmine.privacy import Pseudonymiser
 adapter = CrmCsvAdapter("pilot-bank", Pseudonymiser.from_file("pseudonymisation.key"))
 result = adapter.load("examples/crm_sample.csv")
 
-print(result.summary())        # 3/3 rows accepted (100.0%), 0 rejected
+print(result.summary())  # 3/3 rows accepted (100.0%), 0 rejected
 print(result.episodes[0].handling_seconds)
 ```
 
