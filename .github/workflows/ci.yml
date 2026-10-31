@@ -121,6 +121,52 @@ jobs:
           fi
           echo "no raw identifiers found"
 
+  container:
+    name: Container image
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the test image
+        run: docker build --target test --tag sqmine-test:ci .
+
+      # The same three steps the Jenkins pipeline runs, for the same reason:
+      # the container must outlive a failing gate, or the JUnit report is lost
+      # inside it.
+      - name: Run the quality gate inside the container
+        run: |
+          set -eu
+          rm -rf reports && mkdir -p reports
+          rc=0
+          docker run --name gate sqmine-test:ci run-gate || rc=$?
+          docker cp gate:/reports/. reports/ 2>/dev/null || true
+          docker rm -f gate >/dev/null 2>&1 || true
+          ls -l reports || true
+          exit $rc
+
+      - name: Build the runtime image
+        run: docker build --target runtime --tag sqmine:ci .
+
+      - name: Smoke-test the runtime image
+        run: |
+          set -eu
+          docker run --rm sqmine:ci --version
+          uid="$(docker run --rm --entrypoint id sqmine:ci -u)"
+          if [ "$uid" = "0" ]; then
+            echo "::error::the runtime image runs as root"
+            exit 1
+          fi
+          echo "runtime image runs as uid $uid"
+
+      - name: Upload the container reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-reports
+          path: reports/
+          retention-days: 14
+
   build:
     name: Build distribution
     runs-on: ubuntu-latest

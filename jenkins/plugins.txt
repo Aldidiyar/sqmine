@@ -1,0 +1,30 @@
+# Deliberately short. Every plugin is an upgrade obligation, so this list holds
+# only what the pipeline in Jenkinsfile actually uses. Comments must sit on
+# their own line: the plugin installer reads everything else as an identifier.
+
+# declares this controller, and lets casc.yaml create the job
+configuration-as-code
+job-dsl
+
+# declarative pipeline and the stage-by-stage view used for the screenshots
+workflow-aggregator
+pipeline-stage-view
+
+# checkout scm, plus commit status and repository links
+git
+github
+
+# Docker steps, and withCredentials for the registry login
+docker-workflow
+credentials-binding
+
+# test-result trend from reports/junit.xml
+junit
+
+# timestamps() in options and cleanWs() in post
+timestamper
+ws-cleanup
+
+# authorisation beyond the default, and safe HTML in job descriptions
+matrix-auth
+antisamy-markup-formatter

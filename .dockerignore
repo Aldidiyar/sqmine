@@ -1,0 +1,29 @@
+# Keep the build context small and deterministic. Everything the image needs
+# is copied explicitly in the Dockerfile; anything else only slows the build
+# down or, worse, leaks a local key into a layer.
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+coverage.xml
+htmlcov
+dist
+build
+*.egg-info
+reports
+k8s
+jenkins
+docker-compose.yml
+*.jsonl
+*.key
+pseudonymisation.key
+ci.key
+.env
+.DS_Store

@@ -1,0 +1,92 @@
+# =============================================================================
+# sqmine is a batch tool: it reads an export, writes canonical episodes and
+# exits. The honest Kubernetes object for that is a CronJob, not a Deployment.
+# Wrapping a program that finishes in a controller designed to keep processes
+# alive would only produce a pod that restarts forever and a dashboard that
+# lies about health.
+# =============================================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sqmine-nightly-ingest
+  namespace: sqmine
+  labels:
+    app.kubernetes.io/name: sqmine
+    app.kubernetes.io/component: ingest
+spec:
+  schedule: "17 2 * * *"      # not on the hour: everything else runs then
+  timeZone: "Asia/Almaty"
+  concurrencyPolicy: Forbid   # a second ingest over the same corpus is a bug
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: sqmine
+            app.kubernetes.io/component: ingest
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            fsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: sqmine
+              image: aldidiyar/sqmine:latest
+              imagePullPolicy: IfNotPresent
+              args:
+                - ingest
+                - /data/crm_sample.csv
+                - --adapter=crm-csv
+                - --tenant=pilot-bank
+                - --key-file=/secrets/pseudonymisation.key
+                - --out=/work/episodes.jsonl
+                - --fail-under=0.8
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+                limits:
+                  cpu: "500m"
+                  memory: "512Mi"
+              volumeMounts:
+                - name: input
+                  mountPath: /data
+                  readOnly: true
+                - name: key
+                  mountPath: /secrets
+                  readOnly: true
+                - name: work
+                  mountPath: /work
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: input
+              configMap:
+                name: sqmine-sample-input
+            # The key never reaches the image or the manifest. It is created
+            # out of band; see docs/jenkins-setup.md.
+            - name: key
+              secret:
+                secretName: sqmine-pseudonymisation-key
+                defaultMode: 0400
+            # The root filesystem is read-only, so everything the run writes
+            # goes to these two, and both die with the pod.
+            - name: work
+              emptyDir: {}
+            - name: tmp
+              emptyDir: {}

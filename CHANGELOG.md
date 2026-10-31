@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `Dockerfile` with three stages: a wheel build, a gate stage that runs the
+  whole quality check against that wheel, and a runtime image with no build
+  tools and a non-root user.
+- `docker/run-gate.sh`, the gate itself, written as a script so that it runs
+  when the container runs rather than when the image is built. A gate that
+  fails during a build takes its own JUnit report down with the layer.
+- `Jenkinsfile`: a seven-stage declarative pipeline covering checkout, test
+  image, quality gate with test reporting, runtime image, smoke test, and
+  optional registry push and Kubernetes deployment.
+- `docker-compose.yml` and `jenkins/`: a Jenkins controller declared in
+  Configuration as Code, with the `sqmine-ci` job created on first boot.
+- `k8s/`: namespace, sample input, and a CronJob that runs the ingestion as a
+  batch workload, plus `k8s/deploy.sh` for a local cluster.
+- A `container` job in the GitHub Actions workflow that builds both image
+  stages and runs the gate inside the container on every push.
+
+### Changed
+- Development tools are version-bounded in `pyproject.toml`. `ruff` is pinned
+  exactly because its formatter rewrites source; the rest are capped below
+  their next major version.
+
+### Fixed
+- The formatter check failed in CI while passing locally. Recent `ruff`
+  versions format Python code blocks inside Markdown as well, and one block in
+  `README.md` had eight spaces before an inline comment where the formatter
+  wants two.
+
 ## [0.3.0] - 2026-03-12
 
 ### Added

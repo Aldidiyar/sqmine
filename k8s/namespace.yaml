@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sqmine
+  labels:
+    app.kubernetes.io/name: sqmine
+    app.kubernetes.io/part-of: sqmine-research

@@ -1,0 +1,74 @@
+# =============================================================================
+# Jenkins Configuration as Code.
+#
+# This file is the controller. If something about this Jenkins needs changing,
+# it changes here and goes through review like any other code - not through
+# the web interface, where it would survive exactly as long as the container
+# volume does.
+# =============================================================================
+
+jenkins:
+  systemMessage: >
+    SQ-Mine continuous integration. This controller is provisioned from
+    jenkins/casc.yaml in the sqmine repository. Changes made through the user
+    interface are not preserved.
+  numExecutors: 2
+  mode: NORMAL
+  scmCheckoutRetryCount: 2
+
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID:-admin}"
+          password: "${JENKINS_ADMIN_PASSWORD:-admin}"
+
+  # Anonymous users get nothing; a logged-in user gets the instance. That is
+  # the right trade for a single-maintainer research project and the wrong one
+  # for a shared controller, where matrix-auth would carry per-role grants.
+  authorizationStrategy:
+    loggedInAuthorizationStrategy:
+      allowAnonymousRead: false
+
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: false
+
+security:
+  # The pipeline definition lives in the repository and is reviewed there, so
+  # the Job DSL below does not additionally go through script approval.
+  globalJobDslSecurityConfiguration:
+    useScriptSecurity: false
+
+unclassified:
+  location:
+    url: "${JENKINS_URL:-http://localhost:8080/}"
+    adminAddress: "noreply@example.org"
+  timestamper:
+    allPipelines: true
+
+jobs:
+  - script: |
+      pipelineJob('sqmine-ci') {
+        description('''Build, gate and package the SQ-Mine toolkit.
+                       Defined by the Jenkinsfile in the repository root.''')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('${SQMINE_REPOSITORY:-https://github.com/Aldidiyar/sqmine.git}')
+                }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+          }
+        }
+        triggers {
+          // A controller on localhost has no address a webhook could reach,
+          // so the repository is polled instead. On a public controller this
+          // is replaced by a GitHub webhook, which fires on the push itself.
+          scm('H/5 * * * *')
+        }
+      }

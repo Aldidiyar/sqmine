@@ -1,0 +1,15 @@
+# The pseudonymisation key is deliberately absent from this list. A Secret in
+# a kustomization is a Secret in version control sooner or later; this one is
+# created with kubectl before the first run and never leaves the cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sqmine
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - cronjob.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: sqmine-research

@@ -177,6 +177,37 @@ pytest --cov=sqmine --cov-report=term-missing
 CI runs all four on Python 3.10, 3.11 and 3.12, plus a package build, and fails
 under 90% line coverage. See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+The development tools are version-bounded on purpose. `ruff format` rewrites
+source — including Python blocks inside Markdown — so an unpinned formatter
+makes the build non-deterministic: the same commit passes today and fails
+tomorrow because a new release changed its output. That happened here once,
+and the pin in `pyproject.toml` is the answer to it.
+
+## Container image and Jenkins pipeline
+
+The project ships three things beyond the package itself: a `Dockerfile`, a
+`Jenkinsfile`, and a `docker-compose.yml` that brings up a Jenkins controller
+which already knows about both.
+
+```bash
+docker build --target runtime -t sqmine:latest .
+docker run --rm sqmine:latest --version
+
+docker compose up -d --build      # Jenkins on http://localhost:8080
+```
+
+The image is built in three stages — wheel, gate, runtime — so what ships
+carries no compiler, no test fixtures and no root user, and the gate runs
+against the built wheel rather than the working directory, which is the only
+way a packaging mistake surfaces before release. The Jenkins controller is
+declared in [`jenkins/casc.yaml`](jenkins/casc.yaml) rather than configured by
+hand, and creates the `sqmine-ci` job on first boot.
+
+[`docs/jenkins-setup.md`](docs/jenkins-setup.md) walks through it end to end,
+including the optional registry push and the Kubernetes manifests in
+[`k8s/`](k8s/), which deploy the ingestion run as a CronJob — the honest object
+for a program that processes a corpus and exits.
+
 ## Project layout
 
 ```
@@ -190,6 +221,13 @@ src/sqmine/
     ├── base.py                    the port: SourceAdapter, LoadResult, registry
     ├── crm_csv.py                 CSV transaction-log adapter
     └── contact_centre_json.py     JSON call-record adapter
+
+Dockerfile                         wheel -> gate -> runtime, non-root
+docker/run-gate.sh                 the quality gate the test image runs
+Jenkinsfile                        declarative pipeline, seven stages
+docker-compose.yml                 Jenkins controller, one command
+jenkins/                           controller image, plugins, casc.yaml
+k8s/                               namespace, config, CronJob, deploy.sh
 ```
 
 ## Limitations
