@@ -26,9 +26,13 @@ jenkins:
   # Anonymous users get nothing; a logged-in user gets the instance. That is
   # the right trade for a single-maintainer research project and the wrong one
   # for a shared controller, where matrix-auth would carry per-role grants.
+  #
+  # The symbol is the one the descriptor actually declares. An invented name
+  # here is not a warning: Configuration as Code aborts initialisation and
+  # Jenkins shuts itself down with "Failed to initialize Jenkins".
   authorizationStrategy:
-    loggedInAuthorizationStrategy:
-      allowAnonymousRead: false
+    loggedInUsersCanDoAnything:
+      denyAnonymousReadAccess: true
 
   crumbIssuer:
     standard:
