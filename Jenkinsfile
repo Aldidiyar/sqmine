@@ -57,7 +57,10 @@ pipeline {
 
         stage('Build the test image') {
             steps {
-                sh 'docker build --target test --tag "$TEST_IMAGE" .'
+                // --network=host for the same reason the controller image
+                // is built that way: large downloads inside a build container
+                // on the default bridge were being truncated on this host.
+                sh 'docker build --network=host --target test --tag "$TEST_IMAGE" .'
             }
         }
 
@@ -91,7 +94,7 @@ pipeline {
             steps {
                 sh '''
                     set -eu
-                    docker build --target runtime \
+                    docker build --network=host --target runtime \
                         --build-arg VCS_REF="$VCS_REF" \
                         --build-arg BUILD_DATE="$BUILD_DATE" \
                         --tag "$RUNTIME_IMAGE" \
