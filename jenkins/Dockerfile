@@ -34,7 +34,17 @@ https://download.docker.com/linux/debian $(. /etc/os-release && echo "$VERSION_C
 USER jenkins
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
-RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+# updates.jenkins.io does not serve plugin binaries itself: it redirects to a
+# donated mirror chosen by GeoIP. From Central Asia that is a Singapore mirror
+# which regularly truncates responses, and the installer then retries each
+# plugin three times, turning a three-minute step into a twenty-minute one or
+# a failure. archives.jenkins.io is the project's own archive and is served
+# directly, with no redirect. Override it at build time if a nearer mirror is
+# healthy:  docker compose build --build-arg JENKINS_UC_DOWNLOAD_URL=...
+ARG JENKINS_UC_DOWNLOAD_URL=https://archives.jenkins.io/plugins
+RUN JENKINS_UC_DOWNLOAD_URL="${JENKINS_UC_DOWNLOAD_URL}" \
+    jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
 
 COPY casc.yaml /var/jenkins_conf/casc.yaml
 
