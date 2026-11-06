@@ -27,12 +27,15 @@ jenkins:
   # the right trade for a single-maintainer research project and the wrong one
   # for a shared controller, where matrix-auth would carry per-role grants.
   #
-  # The symbol is the one the descriptor actually declares. An invented name
-  # here is not a warning: Configuration as Code aborts initialisation and
-  # Jenkins shuts itself down with "Failed to initialize Jenkins".
+  # Both names come from the class, not from guesswork: the descriptor of
+  # FullControlOnceLoggedInAuthorizationStrategy declares the symbol
+  # loggedInUsersCanDoAnything, and its only @DataBoundSetter is
+  # setAllowAnonymousRead. A name that is not there is not a warning:
+  # Configuration as Code aborts and Jenkins shuts itself down with
+  # "Failed to initialize Jenkins".
   authorizationStrategy:
     loggedInUsersCanDoAnything:
-      denyAnonymousReadAccess: true
+      allowAnonymousRead: false
 
   crumbIssuer:
     standard:
