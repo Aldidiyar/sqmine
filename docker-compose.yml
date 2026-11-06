@@ -12,6 +12,12 @@ services:
   jenkins:
     build:
       context: ./jenkins
+      # Build on the VM's own network rather than the default bridge. Large
+      # HTTPS downloads inside a build container were being truncated after a
+      # few tens of kilobytes while image pulls of hundreds of megabytes
+      # succeeded - the signature of an MTU mismatch between the bridge and
+      # the host link, not of a bad mirror.
+      network: host
     image: sqmine-jenkins:local
     container_name: sqmine-jenkins
     restart: unless-stopped

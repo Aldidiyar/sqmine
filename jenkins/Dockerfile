@@ -43,8 +43,20 @@ COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 # directly, with no redirect. Override it at build time if a nearer mirror is
 # healthy:  docker compose build --build-arg JENKINS_UC_DOWNLOAD_URL=...
 ARG JENKINS_UC_DOWNLOAD_URL=https://archives.jenkins.io/plugins
-RUN JENKINS_UC_DOWNLOAD_URL="${JENKINS_UC_DOWNLOAD_URL}" \
-    jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
+# Three attempts, because a truncated download is a transport failure rather
+# than a missing plugin: the installer keeps what it already fetched, so each
+# pass has less left to do. Only a third consecutive failure fails the build.
+RUN set -eu; \
+    for attempt in 1 2 3; do \
+        echo "--- plugin download, attempt ${attempt} of 3 ---"; \
+        if JENKINS_UC_DOWNLOAD_URL="${JENKINS_UC_DOWNLOAD_URL}" \
+             jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt; then \
+            echo "--- plugins installed ---"; exit 0; \
+        fi; \
+        echo "--- attempt ${attempt} failed, retrying in 10s ---"; sleep 10; \
+    done; \
+    echo "plugin download failed three times" >&2; exit 1
 
 COPY casc.yaml /var/jenkins_conf/casc.yaml
 
