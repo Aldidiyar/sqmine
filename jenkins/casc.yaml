@@ -5,6 +5,14 @@
 # it changes here and goes through review like any other code - not through
 # the web interface, where it would survive exactly as long as the container
 # volume does.
+#
+# It is deliberately short. Configuration as Code does not warn about a
+# setting it cannot map and carry on: it aborts initialisation, and Jenkins
+# shuts itself down with "Failed to initialize Jenkins". Every key below is
+# one whose symbol and property were checked against the class that
+# implements them. Jenkins' own defaults cover everything else - the CSRF
+# crumb issuer, for instance, is on by default and does not need declaring
+# here to be enabled.
 # =============================================================================
 
 jenkins:
@@ -12,9 +20,8 @@ jenkins:
     SQ-Mine continuous integration. This controller is provisioned from
     jenkins/casc.yaml in the sqmine repository. Changes made through the user
     interface are not preserved.
+
   numExecutors: 2
-  mode: NORMAL
-  scmCheckoutRetryCount: 2
 
   securityRealm:
     local:
@@ -23,36 +30,21 @@ jenkins:
         - id: "${JENKINS_ADMIN_ID:-admin}"
           password: "${JENKINS_ADMIN_PASSWORD:-admin}"
 
-  # Anonymous users get nothing; a logged-in user gets the instance. That is
+  # Anonymous users get nothing; a signed-in user gets the instance. That is
   # the right trade for a single-maintainer research project and the wrong one
   # for a shared controller, where matrix-auth would carry per-role grants.
   #
-  # Both names come from the class, not from guesswork: the descriptor of
+  # Both names come from the class rather than from memory: the descriptor of
   # FullControlOnceLoggedInAuthorizationStrategy declares the symbol
   # loggedInUsersCanDoAnything, and its only @DataBoundSetter is
-  # setAllowAnonymousRead. A name that is not there is not a warning:
-  # Configuration as Code aborts and Jenkins shuts itself down with
-  # "Failed to initialize Jenkins".
+  # setAllowAnonymousRead.
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
-  crumbIssuer:
-    standard:
-      excludeClientIPFromCrumb: false
-
-security:
-  # The pipeline definition lives in the repository and is reviewed there, so
-  # the Job DSL below does not additionally go through script approval.
-  globalJobDslSecurityConfiguration:
-    useScriptSecurity: false
-
 unclassified:
   location:
     url: "${JENKINS_URL:-http://localhost:8080/}"
-    adminAddress: "noreply@example.org"
-  timestamper:
-    allPipelines: true
 
 jobs:
   - script: |
