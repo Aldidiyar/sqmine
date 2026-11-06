@@ -58,6 +58,19 @@ RUN set -eu; \
     done; \
     echo "plugin download failed three times" >&2; exit 1
 
+# buildx, and deliberately after the plugins rather than beside the CLI above.
+# The pipeline builds images with BuildKit, which the client cannot drive
+# without this component - "BuildKit is enabled but the buildx component is
+# missing" is what the build says otherwise. Installing it in its own layer
+# here keeps the thirteen-minute plugin download cached; adding it to the
+# apt line above would throw that away on every change.
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends docker-buildx-plugin \
+ && rm -rf /var/lib/apt/lists/* \
+ && docker buildx version
+USER jenkins
+
 COPY casc.yaml /var/jenkins_conf/casc.yaml
 
 # Skip the setup wizard: the admin account and the authorisation strategy are
